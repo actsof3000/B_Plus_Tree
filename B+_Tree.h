@@ -15,14 +15,22 @@ public:
   int *data;
   Node *nodes;
   int type;
-  Node() : data(NULL), nodes(NULL), type(0) {}
+  Node() : data(nullptr), nodes(nullptr), type(0) {}
   Node(NodeType type)
   {
     this->type = type;
-    data = new int[3];
-    for (int i = 0; i < 3; i++)
-      data[i] = 0;
-    nodes = NULL;
+    data = new int[3]{0};
+    nodes = nullptr;
+  }
+
+  ~Node()
+  {
+    if (data)
+      delete[] data;
+    if (nodes)
+      delete[] nodes;
+    data = nullptr;
+    nodes = nullptr;
   }
 
   int size()
@@ -33,7 +41,8 @@ public:
     return size;
   }
 
-  static void print(std::ostream &out, Node *node, int level);
+  void print(std::ostream &out, Node *node, int level);
+  void print(std::ostream &out);
 };
 
 class B_Plus_Tree
@@ -44,17 +53,18 @@ class B_Plus_Tree
   int insert(Node *node, int num);
 
 public:
-  B_Plus_Tree() : root(NULL){};
+  B_Plus_Tree() : root(nullptr){};
+  ~B_Plus_Tree()
+  {
+    delete root;
+  }
   void insert(int num)
   {
     if (!root)
       root = new Node(leaf);
     insert(root, num);
   }
-  friend std::ostream &operator<<(std::ostream &out, B_Plus_Tree &tree)
-  {
-    Node::print(out, tree.root, 0);
-  }
+  friend std::ostream &operator<<(std::ostream &out, B_Plus_Tree &tree);
 };
 
 #endif
