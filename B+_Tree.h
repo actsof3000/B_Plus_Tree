@@ -13,31 +13,46 @@ class Node
 {
 public:
   int *data;
-  Node *nodes;
+  Node *nodes[4];
   int type;
-  Node() : data(nullptr), nodes(nullptr), type(0) {}
+  Node() : data(nullptr), type(0) {}
   Node(NodeType type)
   {
     this->type = type;
-    data = new int[3]{0};
-    nodes = nullptr;
+    data = new int[4]{0};
+    for(int i = 0; i<4; i++)
+      nodes[i] = nullptr;
   }
 
   ~Node()
   {
     if (data)
       delete[] data;
-    if (nodes)
-      delete[] nodes;
     data = nullptr;
-    nodes = nullptr;
+    for(int i = 0; i<4; i++)
+      delete nodes[i];
   }
+
+  Node& operator=(const Node& node)
+  {
+    // delete[] data;
+    // delete[] nodes;
+    type = node.type;
+    data = node.data;
+    for(int i = 0; i<4; i++)
+      nodes[i] = node.nodes[i];
+  }
+
+  int maxNum();
 
   int size()
   {
     int size = 0;
-    while (data[size])
-      size++;
+    if (data)
+    {
+      while (data[size])
+        size++;
+    }
     return size;
   }
 
@@ -50,7 +65,7 @@ class B_Plus_Tree
   // int level;
   Node *root;
 
-  int insert(Node *node, int num);
+  Node *insert(Node *node, int num);
 
 public:
   B_Plus_Tree() : root(nullptr){};
@@ -58,12 +73,7 @@ public:
   {
     delete root;
   }
-  void insert(int num)
-  {
-    if (!root)
-      root = new Node(leaf);
-    insert(root, num);
-  }
+  void insert(int num);
   friend std::ostream &operator<<(std::ostream &out, B_Plus_Tree &tree);
 };
 
