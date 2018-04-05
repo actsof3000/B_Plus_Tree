@@ -7,7 +7,7 @@ void Node::print(std::ostream &out)
 
 void Node::print(std::ostream &out, Node *node, int level)
 {
-  if (!node || !(node->data))
+  if (!node || !(node->data[0]))
     return;
   for (int i = 0; i < level; i++)
     out << "\t";
@@ -40,10 +40,12 @@ int Node::maxNum()
     return max;
   }
 
-  for (int i = 0; i < 4; i++)
+  int i = 0;
+  while (this->nodes[i])
   {
     int m = this->nodes[i]->maxNum();
     max = (m > max) ? m : max;
+    i++;
   }
   return max;
 }
@@ -104,41 +106,45 @@ Node *B_Plus_Tree::insert(Node *node, int num)
           nNode->data[i] = node->data[i];
 
         int data = node->data[2];
-        delete[] node->data;
-        node->data = new int[4]{0};
+        for (int i = 0; i < 4; i++)
+          node->data[i] = 0;
         node->data[0] = data;
         node->nodes[0] = node->nodes[2];
         node->nodes[1] = node->nodes[3];
       }
       else
       {
-        for (int i = 0; i < 2; i++)
-        {
+        //Giving newNode children and data
+        for (int i = 0; i < 3; i++)
           nNode->nodes[i] = node->nodes[i];
+        for (int i = 0; i < 2; i++)
           nNode->data[i] = node->data[i];
-        }
 
         node->nodes[0] = nChild;
-        node->nodes[1] = node->nodes[2];
+        node->nodes[1] = node->nodes[3];
+        for (int i = 2; i < 4; i++)
+          node->nodes[i] = nullptr;
 
-        int data = node->data[2];
-        delete[] node->data;
-        node->data = new int[4]{0};
-        node->data[0] = data;
+        for (int i = 0; i < 4; i++)
+          node->data[i] = 0;
+        node->data[0] = carry;
       }
       return nNode;
     }
 
     //No split required
-    int i = 3;
-    do
+    for(int i = 3; i>pos; i--)
     {
-      i--;
-      node->data[i + 1] = node->data[i];
-      node->nodes[i + 1] = node->nodes[i];
-    } while (node->nodes[i] != nChild->nodes[0]);
+      node->nodes[i] = node->nodes[i-1];
+    }
+    // int i = 3;
+    // do
+    // {
+    //   i--;
+    //   node->nodes[i + 1] = node->nodes[i];
+    // } while (node->nodes[i] != nChild->nodes[0]);
 
-    node->nodes[i] = nChild;
+    node->nodes[pos] = nChild;
     return nullptr;
   }
   return nullptr;

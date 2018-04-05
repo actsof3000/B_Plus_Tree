@@ -4,7 +4,7 @@
 int main()
 {
   B_Plus_Tree tree;
-  for (int i = 1; i < 9; i++)
+  for (int i = 1; i < 51; i++)
   {
     std::cout << tree << std::endl;
     tree.insert(i);

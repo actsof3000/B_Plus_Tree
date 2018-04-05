@@ -26,9 +26,6 @@ public:
 
   ~Node()
   {
-    if (data)
-      delete[] data;
-    data = nullptr;
     for(int i = 0; i<4; i++)
       delete nodes[i];
   }
