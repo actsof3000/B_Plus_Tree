@@ -30,6 +30,8 @@ void Node::print(std::ostream &out, Node *node, int level)
 
 int Node::maxNum()
 {
+  if(!this)
+    return 0;
   int max = 0;
   if (this->type == leaf)
   {
@@ -48,6 +50,91 @@ int Node::maxNum()
     i++;
   }
   return max;
+}
+
+Node *Node::split()
+{
+  if (!this)
+    return nullptr;
+
+  int nData[4] = {0};
+  for (int i = 0; i < 4; i++)
+    nData[i] = this->data[i];
+
+  Node *nNode = new Node((NodeType)this->type);
+  if (this->type == leaf)
+  {
+    if (this->size() < 2)
+    {
+      delete nNode;
+      return nullptr;
+    }
+    nNode->nodes[0] = this;
+    int numSplit = (int)((float)this->size()/2 + 0.5f);
+    for(int i = 0; i<numSplit; i++)
+      nNode->data[i] = this->data[i];
+    for(int i = 0; i<4; i++)
+    {
+      if(i < numSplit)
+        this->data[i] = this->data[i+numSplit];
+      else
+        this->data[i] = 0;
+    }
+  }
+  else
+  {
+    if (this->size() > 2) //4 nodes, split 2 and 2
+    {
+      nNode->nodes[0] = this->nodes[0];
+      nNode->nodes[1] = this->nodes[1];
+      this->nodes[0] = this->nodes[2];
+      this->nodes[0] = this->nodes[3];
+      this->nodes[2] = nullptr;
+      this->nodes[3] = nullptr;
+
+      nNode->data[0] = nNode->nodes[0]->maxNum();
+      this->data[0] = this->nodes[0]->maxNum();
+    }
+    else
+    {
+      int pos = 0;
+      Node *nChild = nullptr;
+      while (this->nodes[pos] && !(nChild = this->nodes[pos]->split()))
+        pos++;
+      if (pos < 2)
+      {
+        for (int i = 0; i < pos; i++)
+          nNode->nodes[i] = this->nodes[i];
+        nNode->nodes[pos] = nChild;
+        for (int i = pos + 1; i < 1; i++)
+          nNode->nodes[i] = this->nodes[i - 1];
+        nNode->data[0] = nNode->nodes[0]->maxNum();
+
+        this->nodes[0] = this->nodes[2];
+        this->nodes[1] = this->nodes[3];
+        for (int i = 2; i < 4; i++)
+          this->nodes[i] = nullptr;
+        this->data[0] = this->nodes[0]->maxNum();
+      }
+      else
+      {
+        //Giving newNode children and data
+        for (int i = 0; i < 2; i++)
+          nNode->nodes[i] = this->nodes[i];
+        nNode->data[0] = nNode->nodes[0]->maxNum();
+
+        this->nodes[0] = nChild;
+        this->nodes[1] = this->nodes[3];
+        for (int i = 2; i < 4; i++)
+          this->nodes[i] = nullptr;
+
+        for (int i = 0; i < 4; i++)
+          this->data[i] = 0;
+        this->data[0] = this->nodes[0]->maxNum();
+      }
+    }
+  }
+  return nNode;
 }
 
 Node *B_Plus_Tree::insert(Node *node, int num)
@@ -133,21 +220,55 @@ Node *B_Plus_Tree::insert(Node *node, int num)
     }
 
     //No split required
-    for(int i = 3; i>pos; i--)
+    for (int i = 3; i > pos; i--)
     {
-      node->nodes[i] = node->nodes[i-1];
+      node->nodes[i] = node->nodes[i - 1];
     }
-    // int i = 3;
-    // do
-    // {
-    //   i--;
-    //   node->nodes[i + 1] = node->nodes[i];
-    // } while (node->nodes[i] != nChild->nodes[0]);
 
     node->nodes[pos] = nChild;
     return nullptr;
   }
   return nullptr;
+}
+
+int *Node::collect()
+{
+  int *values;
+  if (this->type == leaf)
+  {
+    values = new int[4]{0};
+    for (int i = 0; i < 4; i++)
+      values[i] = this->data[i];
+  }
+  else
+  {
+    int size = 16;
+    values = new int[size]{0};
+    int valPos = 0;
+    int i = 0;
+    while (this->nodes[i])
+    {
+      int *coll = this->nodes[i]->collect();
+      int j = 0;
+      while (coll[j])
+      {
+        if (valPos == size - 1)
+        {
+          size *= 2;
+          int *nValues = new int[size]{0};
+          for (int k = 0; k < valPos; k++)
+            nValues[k] = values[k];
+          delete values;
+          values = nValues;
+        }
+        values[valPos] = coll[j];
+        valPos++;
+        j++;
+      }
+      i++;
+    }
+  }
+  return values;
 }
 
 void B_Plus_Tree::insert(int num)
@@ -163,6 +284,144 @@ void B_Plus_Tree::insert(int num)
     root->nodes[1] = oNode;
     root->data[0] = nNode->maxNum();
     // root->data[1] = oNode->maxNum();
+  }
+}
+
+int *B_Plus_Tree::deleteNum(Node *node, int num)
+{
+  if (node)
+  {
+    int pos = 0;
+    while (node->data[pos] < num && node->data[pos] != 0)
+      pos++;
+
+    if (node->type == leaf)
+    {
+      if (node->data[pos] == num)
+      {
+        for (int i = pos; i < 3; i++)
+        {
+          node->data[i] = node->data[i + 1];
+        }
+      }
+      return nullptr;
+    }
+    //Only internal nodes
+    int *data = deleteNum(node->nodes[pos], num);
+    if (node->nodes[pos]->type == leaf)
+    {
+      if (node->nodes[pos]->size() < 1)
+      {
+        delete node->nodes[pos];
+        node->nodes[pos] = nullptr;
+        for (int i = pos; i < 3; i++)
+        {
+          node->nodes[i] = node->nodes[i + 1];
+          node->data[i] = node->nodes[i]->maxNum();
+        }
+        if (node->numChildren() < 2)
+        {
+          Node *nNode = node->nodes[0]->split();
+          if (nNode)
+          {
+            node->nodes[1] = node->nodes[0];
+            node->nodes[0] = nNode;
+            node->data[0] = node->nodes[0]->maxNum();
+          }
+          else
+          {
+            return node->collect();
+          }
+        }
+      }
+      return nullptr;
+    }
+    else
+    {
+      if (data)
+      {
+        node->nodes[pos]->destroy();
+        delete node->nodes[pos];
+        node->nodes[pos] = nullptr;
+
+        for (int i = pos; i < 3; i++)
+        {
+          node->nodes[i] = node->nodes[i + 1];
+          node->data[i] = node->nodes[i]->maxNum();
+        }
+
+        if (node->numChildren() < 2)
+        {
+          Node *nChild = node->nodes[0]->split();
+          if (nChild)
+          {
+            node->nodes[1] = node->nodes[0];
+            node->nodes[0] = nChild;
+            node->data[0] = node->nodes[0]->maxNum();
+          }
+          else
+          {
+            //add collect to data
+            int dataSize = 0;
+            while (data[dataSize])
+              dataSize++;
+            int *coll = node->nodes[0]->collect();
+            int collSize = 0;
+            while (coll[collSize])
+              collSize++;
+            int *nData = new int[dataSize + collSize + 1]{0};
+            for (int i = 0; i < dataSize; i++)
+              nData[i] = data[i];
+            for (int i = 0; i < collSize; i++)
+              nData[i + dataSize] = coll[i];
+            delete data;
+            data = nData;
+          }
+        }
+        return data;
+      }
+    }
+  }
+  return nullptr;
+}
+
+void B_Plus_Tree::deleteNum(int num)
+{
+  if (root)
+  {
+    int pos = 0;
+    while (root->data[pos] < num && root->data[pos] != 0)
+      pos++;
+    int *data = deleteNum(root->nodes[pos], num);
+
+    if (data)
+    {
+      if (root->nodes[pos]->numChildren() < 2)
+      {
+        root->nodes[pos]->destroy();
+        delete root->nodes[pos];
+        root->nodes[pos] = nullptr;
+
+        for (int i = pos; i < 3; i++)
+        {
+          root->nodes[i] = root->nodes[i + 1];
+          root->data[i] = root->nodes[i]->maxNum();
+        }
+
+        if(root->numChildren() < 2)
+        {
+          Node *oRoot = root;
+          root = root->nodes[0];
+          delete oRoot;
+        }
+      }
+      int i = 0;
+      while(data[i])
+      {
+        insert(data[i]);
+        i++;
+      }
+    }
   }
 }
 
