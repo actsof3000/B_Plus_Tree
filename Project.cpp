@@ -19,21 +19,30 @@ std::string exec(const char *cmd)
 
 int main()
 {
-  // int arr[8] = {8, 5, 1, 7, 3, 12, 9, 6};
+  int arr[15] = {12,35,3,20,85,22,5,10,1,18,11,55,99,36,47};
   B_Plus_Tree tree;
-  for (int i = 1; i < 21; i++)
+  for (int i = 0; i < 15; i++)
   {
     // std::cout << tree << std::endl;
-    tree.insert(i);
+    tree.insert(arr[i]);
   }
   std::cout << tree << std::endl;
-
-  for(int i = 1; i<13; i++)
-  {
-    std::cout << "Delete " << i << std::endl;
-    tree.deleteNum(i);
-    std::cout<< tree << std::endl;
-  }
+  tree.deleteNum(85);
+  std::cout << "Del: 85\n" << tree << std::endl;
+  tree.deleteNum(84);
+  std::cout << "Del: 84\n" << tree << std::endl;
+  tree.deleteNum(18);
+  std::cout << "Del: 18\n" << tree << std::endl;
+  tree.insert(19);
+  std::cout << "Ins: 19\n" << tree << std::endl;
+  tree.deleteNum(5);
+  std::cout << "Del: 5\n" << tree << std::endl;
+  tree.deleteNum(47);
+  std::cout << "Del: 47\n" << tree << std::endl;
+  tree.deleteNum(99);
+  std::cout << "Del: 99\n" << tree << std::endl;
+  tree.insert(11);
+  std::cout << "Ins: 11\n" << tree << std::endl;
   // std::cout << exec("dot -Tjpg -O graph.gv") << std::endl;
   // exec("eog graph.gv.jpg");
 

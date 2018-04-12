@@ -30,7 +30,7 @@ void Node::print(std::ostream &out, Node *node, int level)
 
 int Node::maxNum()
 {
-  if(!this)
+  if (!this)
     return 0;
   int max = 0;
   if (this->type == leaf)
@@ -70,13 +70,13 @@ Node *Node::split()
       return nullptr;
     }
     nNode->nodes[0] = this;
-    int numSplit = (int)((float)this->size()/2 + 0.5f);
-    for(int i = 0; i<numSplit; i++)
+    int numSplit = (int)((float)this->size() / 2 + 0.5f);
+    for (int i = 0; i < numSplit; i++)
       nNode->data[i] = this->data[i];
-    for(int i = 0; i<4; i++)
+    for (int i = 0; i < 4; i++)
     {
-      if(i < numSplit)
-        this->data[i] = this->data[i+numSplit];
+      if (i < numSplit)
+        this->data[i] = this->data[i + numSplit];
       else
         this->data[i] = 0;
     }
@@ -145,6 +145,8 @@ Node *B_Plus_Tree::insert(Node *node, int num)
 
   if (node->type == leaf)
   {
+    if (node->data[pos] == num)
+      return nullptr;
     for (int i = 4; i > pos; i--)
       node->data[i] = node->data[i - 1];
     node->data[pos] = num;
@@ -310,6 +312,11 @@ int *B_Plus_Tree::deleteNum(Node *node, int num)
     int *data = deleteNum(node->nodes[pos], num);
     if (node->nodes[pos]->type == leaf)
     {
+      for (int i = 0; i < 3; i++)
+        node->data[i] = node->nodes[i]->maxNum();
+      int numChildren = node->numChildren();
+      for (int i = 3; i >= numChildren - 1; i--)
+        node->data[i] = 0;
       if (node->nodes[pos]->size() < 1)
       {
         delete node->nodes[pos];
@@ -317,8 +324,9 @@ int *B_Plus_Tree::deleteNum(Node *node, int num)
         for (int i = pos; i < 3; i++)
         {
           node->nodes[i] = node->nodes[i + 1];
-          node->data[i] = node->nodes[i]->maxNum();
         }
+        node->data[numChildren - 2] = 0;
+
         if (node->numChildren() < 2)
         {
           Node *nNode = node->nodes[0]->split();
@@ -347,7 +355,14 @@ int *B_Plus_Tree::deleteNum(Node *node, int num)
         for (int i = pos; i < 3; i++)
         {
           node->nodes[i] = node->nodes[i + 1];
-          node->data[i] = node->nodes[i]->maxNum();
+        }
+        int numChildren = node->numChildren();
+        for (int i = 0; i < 3; i++)
+        {
+          if (i < numChildren - 1)
+            node->data[i] = node->nodes[i]->maxNum();
+          else
+            node->data[i] = 0;
         }
 
         if (node->numChildren() < 2)
@@ -408,7 +423,7 @@ void B_Plus_Tree::deleteNum(int num)
           root->data[i] = root->nodes[i]->maxNum();
         }
 
-        if(root->numChildren() < 2)
+        if (root->numChildren() < 2)
         {
           Node *oRoot = root;
           root = root->nodes[0];
@@ -416,7 +431,7 @@ void B_Plus_Tree::deleteNum(int num)
         }
       }
       int i = 0;
-      while(data[i])
+      while (data[i])
       {
         insert(data[i]);
         i++;
