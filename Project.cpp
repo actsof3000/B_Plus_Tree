@@ -1,6 +1,7 @@
 #include "B+_Tree.h"
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 #include <memory>
 
 std::string exec(const char *cmd)
@@ -18,42 +19,65 @@ std::string exec(const char *cmd)
   return result;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-  //Initial tree
-  int arr[15] = {12,35,3,20,85,22,5,10,1,18,11,55,99,36,47};
   B_Plus_Tree tree;
-  for (int i = 0; i < 15; i++)
+  std::fstream fs;
+  //Initial tree
+  for (int i = 1; i < argc; i++)
   {
-    // std::cout << tree << std::endl;
-    tree.insert(arr[i]);
+    int x = atoi(argv[i]);
+    tree.insert(x);
   }
-  std::cout << tree << std::endl;
-   std::fstream fs;
-  //series of insert/deletes
-  tree.deleteNum(85);
-  std::cout << "Del: 85\n" << tree << std::endl;
-  tree.deleteNum(84);
-  std::cout << "Del: 84\n" << tree << std::endl;
-  tree.deleteNum(18);
-  std::cout << "Del: 18\n" << tree << std::endl;
-  tree.insert(19);
-  std::cout << "Ins: 19\n" << tree << std::endl;
-  tree.deleteNum(5);
-  std::cout << "Del: 5\n" << tree << std::endl;
-  tree.deleteNum(47);
-  std::cout << "Del: 47\n" << tree << std::endl;
-  tree.deleteNum(99);
-  std::cout << "Del: 99\n" << tree << std::endl;
-  tree.insert(11);
-  std::cout << "Ins: 11\n" << tree << std::endl;
-  
-  //Making and opening graph
-  fs.open("nGraph2.gv", std::fstream::out);
-  tree.graphvizPrint(fs);
-  fs.close();
-  std::cout << exec("dot -Tjpg -O nGraph2.gv") << std::endl;
-  exec("eog nGraph2.gv.jpg");
+
+  char command = '0';
+  do
+  {
+    std::string option = "";
+    std::cout << "Choose an option: " << std::endl;
+    std::cout << "0. Exit" << std::endl;
+    std::cout << "1. Insert" << std::endl;
+    std::cout << "2. Delete" << std::endl;
+    std::cout << "3. Print" << std::endl;
+    std::cin >> option;
+    command = option[0];
+
+    int number = 0;
+    switch (command)
+    {
+    case '0':
+      break;
+    case '1':
+      std::cout << "Insert: " << std::endl;
+      std::cin >> number;
+      if (number > 999 || number < 1)
+      {
+        std::cout << "Give number between 1 and 999" << std::endl;
+        break;
+      }
+      tree.insert(number);
+      break;
+    case '2':
+      std::cout << "Delete: " << std::endl;
+      std::cin >> number;
+      if (number > 999 || number < 1)
+      {
+        std::cout << "Give number between 1 and 999" << std::endl;
+        break;
+      }
+      tree.deleteNum(number);
+      break;
+    case '3':
+      fs.open("graph.gv", std::fstream::out);
+      tree.graphvizPrint(fs);
+      fs.close();
+      std::cout << exec("dot -Tjpg -O graph.gv") << std::endl;
+      exec("eog graph.gv.jpg");
+      break;
+    default:
+      std::cout << "Please give number of valid option" << std::endl;
+    }
+  } while (command != '0');
 
   return 0;
 }

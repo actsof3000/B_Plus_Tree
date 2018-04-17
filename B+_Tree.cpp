@@ -29,12 +29,12 @@ void Node::print(std::ostream &out, Node *node, int level)
 }
 
 
-void Node::graph(std::ostream &out)
+void Node::graph(std::ostream &out, int &numNode, int &numLeaf)
 {
   if (this && this->data)
   {
-    static int numNode = 0;
-    static int leafNum = 0;
+    // static int nodeNum = 0;
+    // static int leafNum = 0;
     int number = numNode;
     if (this->type == internal)
     {
@@ -57,16 +57,16 @@ void Node::graph(std::ostream &out)
         {
           out << "\"node" << number << "\":f" << i;
           if (this->nodes[i]->type == leaf)
-            out << " -> \"leaf" << leafNum << "\";" << std::endl;
+            out << " -> \"leaf" << numLeaf << "\";" << std::endl;
           else
             out << " -> \"node" << numNode << "\";" << std::endl;
         }
-        this->nodes[i]->graph(out);
+        this->nodes[i]->graph(out, numNode, numLeaf);
       }
     }
     else
     {
-      out << "leaf" << leafNum << "[label = \"";
+      out << "leaf" << numLeaf << "[label = \"";
       for (int i = 0; i < 3; i++)
       {
         if (this->data[i])
@@ -75,12 +75,12 @@ void Node::graph(std::ostream &out)
           out << " |";
       }
       out << "<f0> ·\"];" << std::endl;
-      if (leafNum)
+      if (numLeaf)
       {
-        out << "\"leaf" << leafNum - 1 << "\":f0"
-            << " -> \"leaf" << leafNum << "\";" << std::endl;
+        out << "\"leaf" << numLeaf - 1 << "\":f0"
+            << " -> \"leaf" << numLeaf << "\";" << std::endl;
       }
-      leafNum++;
+      numLeaf++;
     }
   }
 }
@@ -98,7 +98,7 @@ int Node::maxNum()
     }
     return max;
   }
-  
+
   //If not leaf, return max of children
   int i = 0;
   while (this->nodes[i])
@@ -508,7 +508,8 @@ void B_Plus_Tree::graphvizPrint(std::fstream &file)
 {
   file << "digraph\n{" << std::endl;
   file << "node [shape = record,height=.1];" << std::endl;
-  root->graph(file);
+  int x = 0, y = 0; //Just used to init numNode and numLeaf
+  root->graph(file, x, y);
   file << std::endl;
   file << "}" << std::endl;
 }

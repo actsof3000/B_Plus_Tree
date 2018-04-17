@@ -19,7 +19,7 @@ public:
   Node *nodes[4];
   //Node type
   int type;
-  
+
   Node() : data(nullptr), type(0) {}
   Node(NodeType type)
   {
@@ -92,7 +92,7 @@ public:
   int *collect();
 
   //recursive function for graphing tree
-  void graph(std::ostream &out);
+  void graph(std::ostream &out, int &numNode, int &numLeaf);
 
   void print(std::ostream &out, Node *node, int level);
   void print(std::ostream &out);
