@@ -2,6 +2,7 @@
 #define B_PLUS_TREE_H
 
 #include <iostream>
+#include <fstream>
 
 enum NodeType
 {
@@ -12,9 +13,13 @@ enum NodeType
 class Node
 {
 public:
+  //Holds data for node
   int *data;
+  //Children for node
   Node *nodes[4];
+  //Node type
   int type;
+  
   Node() : data(nullptr), type(0) {}
   Node(NodeType type)
   {
@@ -29,6 +34,7 @@ public:
     delete[] data;
   }
 
+  //Recursively deletes node and all children
   void destroy()
   {
     if (type == internal)
@@ -45,16 +51,20 @@ public:
 
   Node &operator=(const Node &node)
   {
-    // delete[] data;
-    // delete[] nodes;
+    delete[] data;
+    data = new int[4]{0};
     type = node.type;
-    data = node.data;
     for (int i = 0; i < 4; i++)
+    {
       nodes[i] = node.nodes[i];
+      data[i] = node.data[i];
+    }
   }
 
+  //returns maximum number in data
   int maxNum();
 
+  //returns number of children
   int numChildren()
   {
     int num = 0;
@@ -63,6 +73,7 @@ public:
     return num;
   }
 
+  //Returns number of data elements
   int size()
   {
     int size = 0;
@@ -74,8 +85,14 @@ public:
     return size;
   }
 
+  //Splits the node into two, returns the one on the left
   Node *split();
+
+  //Collects all data from leaf nodes in tree
   int *collect();
+
+  //recursive function for graphing tree
+  void graph(std::ostream &out);
 
   void print(std::ostream &out, Node *node, int level);
   void print(std::ostream &out);
@@ -83,10 +100,11 @@ public:
 
 class B_Plus_Tree
 {
-  // int level;
   Node *root;
 
+  //recursive function for insertion
   Node *insert(Node *node, int num);
+  //recursive function for deletion
   int *deleteNum(Node *node, int num);
 
 public:
@@ -95,8 +113,13 @@ public:
   {
     delete root;
   }
+  //Insert Number into tree
   void insert(int num);
+  //Delete number from tree
+  //Does nothing if number is non-existent in tree
   void deleteNum(int num);
+  //Parses tree into dot language in file
+  void graphvizPrint(std::fstream &file);
   friend std::ostream &operator<<(std::ostream &out, B_Plus_Tree &tree);
 };
 

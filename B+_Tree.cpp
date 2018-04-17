@@ -28,6 +28,63 @@ void Node::print(std::ostream &out, Node *node, int level)
   }
 }
 
+
+void Node::graph(std::ostream &out)
+{
+  if (this && this->data)
+  {
+    static int numNode = 0;
+    static int leafNum = 0;
+    int number = numNode;
+    if (this->type == internal)
+    {
+      out << "node" << numNode << "[label = \"";
+      for (int i = 0; i < 3; i++)
+      {
+        out << "<f" << i << "> ·|";
+        if (this->data[i])
+          out << this->data[i];
+        else
+          out << " ";
+        out << "|";
+      }
+      out << "<f3> ·\"];" << std::endl;
+      numNode++;
+
+      for (int i = 0; i < 4; i++)
+      {
+        if (this->nodes[i])
+        {
+          out << "\"node" << number << "\":f" << i;
+          if (this->nodes[i]->type == leaf)
+            out << " -> \"leaf" << leafNum << "\";" << std::endl;
+          else
+            out << " -> \"node" << numNode << "\";" << std::endl;
+        }
+        this->nodes[i]->graph(out);
+      }
+    }
+    else
+    {
+      out << "leaf" << leafNum << "[label = \"";
+      for (int i = 0; i < 3; i++)
+      {
+        if (this->data[i])
+          out << this->data[i] << "|o|";
+        else
+          out << " |";
+      }
+      out << "<f0> ·\"];" << std::endl;
+      if (leafNum)
+      {
+        out << "\"leaf" << leafNum - 1 << "\":f0"
+            << " -> \"leaf" << leafNum << "\";" << std::endl;
+      }
+      leafNum++;
+    }
+  }
+}
+
 int Node::maxNum()
 {
   if (!this)
@@ -41,7 +98,8 @@ int Node::maxNum()
     }
     return max;
   }
-
+  
+  //If not leaf, return max of children
   int i = 0;
   while (this->nodes[i])
   {
@@ -444,4 +502,13 @@ std::ostream &operator<<(std::ostream &out, B_Plus_Tree &tree)
 {
   tree.root->print(out);
   return out;
+}
+
+void B_Plus_Tree::graphvizPrint(std::fstream &file)
+{
+  file << "digraph\n{" << std::endl;
+  file << "node [shape = record,height=.1];" << std::endl;
+  root->graph(file);
+  file << std::endl;
+  file << "}" << std::endl;
 }

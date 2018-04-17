@@ -1,5 +1,6 @@
 #include "B+_Tree.h"
 #include <iostream>
+#include <fstream>
 #include <memory>
 
 std::string exec(const char *cmd)
@@ -19,6 +20,7 @@ std::string exec(const char *cmd)
 
 int main()
 {
+  //Initial tree
   int arr[15] = {12,35,3,20,85,22,5,10,1,18,11,55,99,36,47};
   B_Plus_Tree tree;
   for (int i = 0; i < 15; i++)
@@ -27,6 +29,8 @@ int main()
     tree.insert(arr[i]);
   }
   std::cout << tree << std::endl;
+   std::fstream fs;
+  //series of insert/deletes
   tree.deleteNum(85);
   std::cout << "Del: 85\n" << tree << std::endl;
   tree.deleteNum(84);
@@ -43,8 +47,13 @@ int main()
   std::cout << "Del: 99\n" << tree << std::endl;
   tree.insert(11);
   std::cout << "Ins: 11\n" << tree << std::endl;
-  // std::cout << exec("dot -Tjpg -O graph.gv") << std::endl;
-  // exec("eog graph.gv.jpg");
+  
+  //Making and opening graph
+  fs.open("nGraph2.gv", std::fstream::out);
+  tree.graphvizPrint(fs);
+  fs.close();
+  std::cout << exec("dot -Tjpg -O nGraph2.gv") << std::endl;
+  exec("eog nGraph2.gv.jpg");
 
   return 0;
 }
